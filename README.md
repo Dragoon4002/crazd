@@ -1,87 +1,104 @@
-# CRAZD
+# CRAZD — Bet on-chain. Win on-chain. No middlemen.
 
-Multiplayer betting platform on Mantle. Provably fair. Fast settlements.
+> Provably fair multiplayer betting on Stellar. Every outcome verifiable. Every payout instant.
 
-## What is CRAZD?
+---
 
-Two game modes built for degens who want transparent, real-time betting:
+## Why CRAZD?
+
+Most crypto betting platforms are just casinos with a blockchain logo slapped on. The house controls the RNG, holds your funds, and pays out whenever they feel like it.
+
+CRAZD is different. Bets go directly into a Soroban smart contract. Outcomes are hash-verified before the round starts. Payouts are on-chain. The house literally cannot cheat — the math is public.
+
+---
+
+## The Games
 
 ### Crash
-Classic multiplier game. A chart starts at 1x and climbs - could hit 2x, 10x, 100x, or crash instantly. Place your bet, watch it climb, cash out whenever. Wait too long? It crashes and you lose everything. Cash out early? You might miss a 50x run.
+A multiplier climbs from 1x. Could hit 2x. Could hit 100x. Could crash at 1.01x. You decide when to pull out.
 
-- Real-time multiplayer - see other players betting live
-- 60fps chart updates for smooth action
-- Watch cashouts and rugs happen in real-time
+- Watch other players bet and bail in real-time
+- 60fps live chart
+- Cash out at any point before the crash
+
+**The thrill:** You're not betting against a machine. You're betting against everyone else's nerve.
 
 ### Candleflip
-Quick 8-second rounds. Pick bullish or bearish on the next candle. Right = 2x. Wrong = 0. Multiple rooms running simultaneously for parallel positions.
+8 seconds. Bull or bear. Double or nothing.
 
-- Real-time candle formation
-- Instant results
-- Run multiple rooms at once
+- 40 price ticks, 200ms each — watch the candle form live
+- Multiple rooms run simultaneously
+- No waiting around — next round starts immediately
 
-## Tech Stack
+### Battles & Keno
+More ways to lose your XLM responsibly.
+
+---
+
+## How It's Built
+
+```
+┌──────────────────┐     ┌──────────────────┐     ┌──────────────────┐
+│  Next.js 16      │────▶│  Go WebSocket    │────▶│  Stellar/Soroban │
+│  React 19        │◀────│  Game Engine     │     │  CrashHouse      │
+│  Tailwind v4     │     │                  │     │  Contract        │
+└──────────────────┘     └──────────────────┘     └──────────────────┘
+        │                        │
+        ▼                        ▼
+┌──────────────────┐     ┌──────────────────┐
+│  Freighter       │     │  PostgreSQL       │
+│  Wallet          │     │  + Redis          │
+└──────────────────┘     └──────────────────┘
+```
 
 | Layer | Tech |
-|-------|------|
-| Frontend | Next.js 16, React 19, TypeScript, Tailwind CSS |
-| Backend | Go, Gorilla WebSocket |
-| Blockchain | Mantle Sepolia, Solidity |
-| Auth | Privy |
+|---|---|
+| Frontend | Next.js 16, React 19, TypeScript, Tailwind v4 |
+| Backend | Go 1.24, Gorilla WebSocket |
+| Blockchain | Stellar / Soroban |
+| Wallet | Freighter |
 | Database | PostgreSQL, Redis |
 
-## Provably Fair
+---
 
-Both games use predetermined hash-based outcomes:
-1. Server generates seed + hash before any bets
-2. Hash is published to players before betting
-3. After game ends, seed is revealed
-4. Players can verify: `SHA256(seed) === published_hash`
+## Provably Fair — Actually
 
-The house can't change results after seeing player positions.
+Before every round:
+1. Server generates a seed and publishes `SHA256(seed)` — locked in before bets open
+2. Round plays out
+3. Seed is revealed — anyone can verify `SHA256(seed) === committed_hash`
 
-## Architecture
+The house **cannot** change the outcome after seeing where players placed their bets. The commitment is on-chain. The math is open source. Don't trust — verify.
 
-```
-┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
-│                 │     │                 │     │                 │
-│  Next.js App    │────▶│  Go WebSocket   │────▶│  Mantle Chain   │
-│  (React 19)     │     │  Server         │     │  (Contracts)    │
-│                 │     │                 │     │                 │
-└─────────────────┘     └─────────────────┘     └─────────────────┘
-        │                       │
-        │                       │
-        ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐
-│  Privy Auth     │     │  PostgreSQL     │
-│  (Wallet)       │     │  + Redis        │
-└─────────────────┘     └─────────────────┘
-```
-
-## Features
-
-- **Live Chat** - Talk trash in real-time
-- **Leaderboard** - Top players ranked by profit
-- **Instant Payouts** - Smart contract settlements
-- **Mobile Ready** - Responsive design
+---
 
 ## Smart Contract
 
-Deployed on Mantle Sepolia:
-- GameHouseV3: `0x80Fc067cDDCDE4a78199a7A6751F2f629654b93A`
+**CrashHouse** — deployed on Stellar Testnet:
 
-## Getting Started
+```
+CBHMMQBK6ERVGROJZFHQ56QLBCBWNL5NXLCTV2X2ZBZ5LCWU3ORZUJP3
+```
+
+Player bets flow: `Freighter signs → contract holds XLM → server calls pay_player on win`
+
+No custodial wallets. No withdrawal delays. No rugs (except the game kind).
+
+---
+
+## Run It Yourself
 
 ### Prerequisites
 - Node.js 20+
-- Go 1.21+
-- PostgreSQL
-- Redis (optional)
+- Go 1.24+
+- PostgreSQL + Redis
+- [Freighter](https://freighter.app) browser extension — set to **Testnet**
 
 ### Frontend
 ```bash
 cd crash-frontend
 npm install
+cp .env.example .env
 npm run dev
 ```
 
@@ -89,46 +106,26 @@ npm run dev
 ```bash
 cd crash-backend
 go mod download
+cp .env.example .env
 go run main.go
 ```
 
-### Environment Variables
+### Environment
 
-Frontend (`.env`):
-```
-NEXT_PUBLIC_WS_URL=wss://your-backend-url
-NEXT_PUBLIC_API_URL=https://your-backend-url
-NEXT_PUBLIC_PRIVY_APP_ID=your-privy-app-id
+**`crash-frontend/.env`**
+```env
+NEXT_PUBLIC_CONTRACT_ID=<soroban contract id>
+NEXT_PUBLIC_RPC_URL=https://soroban-testnet.stellar.org
+NEXT_PUBLIC_API_URL=http://localhost:8080
+NEXT_PUBLIC_WS_URL=ws://localhost:8080
 ```
 
-Backend:
-```
+**`crash-backend/.env`**
+```env
+SERVER_PRIVATE_KEY=<hex ed25519 key>
+CONTRACT_ID=<soroban contract id>
+RPC_URL=https://soroban-testnet.stellar.org
 DATABASE_URL=postgres://...
-REDIS_URL=redis://...
-PRIVATE_KEY=your-contract-signer-key
-RPC_URL=https://rpc.sepolia.mantle.xyz
+REDIS_URL=...
+REDIS_PASSWORD=...
 ```
-
-## Game Mechanics
-
-### Crash Formula
-```
-multiplier = e^(elapsed_time * growth_rate)
-crash_point = hash_to_float(server_seed) * max_multiplier
-```
-
-### Candleflip Formula
-```
-40 ticks × 200ms = 8 seconds
-price_change = seeded_random(-5%, +5%) per tick
-winner = final_price >= 1.0 ? "bull" : "bear"
-payout = 2x bet if correct
-```
-
-## Team
-
-Built for Mantle Hackathon 2025
-
-## License
-
-MIT
