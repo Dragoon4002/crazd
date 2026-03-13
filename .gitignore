@@ -1,0 +1,43 @@
+# ── Node / Next.js ───────────────────────────────────────────────────────────
+node_modules/
+.next/
+out/
+build/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+*.tsbuildinfo
+next-env.d.ts
+
+# ── Rust / Cargo ─────────────────────────────────────────────────────────────
+target/
+
+# ── Go ───────────────────────────────────────────────────────────────────────
+vendor/
+*.exe
+*.test
+
+# ── Env files ────────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+.DS_Store
+*.pem
+.vercel
+coverage/
+
+
+docs/

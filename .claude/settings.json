@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:developers.stellar.org)",
+      "Bash(stellar keys show:*)",
+      "Bash(go get:*)"
+    ]
+  }
+}
