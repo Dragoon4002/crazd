@@ -67,7 +67,7 @@ export function CrashBettingUI({ gameId, currentMultiplier, status }: CrashBetti
         return;
       }
 
-      // Call gasless API endpoint (server pays gas)
+      // Call cashout API endpoint (server submits payout tx)
       const response = await fetch(API_ENDPOINTS.crashCashout, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

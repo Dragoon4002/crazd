@@ -16,6 +16,10 @@ export const API_ENDPOINTS = {
   candleRegister: `${API_CONFIG.baseUrl}/api/candle/register`,
   candlePreviewOdds: `${API_CONFIG.baseUrl}/api/candle/preview-odds`,
 
+  // Keno
+  kenoInit: `${API_CONFIG.baseUrl}/api/keno/init`,
+  kenoPlay: `${API_CONFIG.baseUrl}/api/keno/play`,
+
   // Verification
   verifyGame: (gameId: string) => `${API_CONFIG.baseUrl}/api/verify/${gameId}`,
   health: `${API_CONFIG.baseUrl}/api/health`,

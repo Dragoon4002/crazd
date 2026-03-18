@@ -23,17 +23,17 @@ var (
 // Stored as [multiplier, amount] in Redis hash
 type CrashBetData struct {
 	EntryMultiplier float64 `json:"multiplier"`
-	BetAmount       float64 `json:"amount"` // In MNT (not wei)
+	BetAmount       float64 `json:"amount"` // In XLM
 }
 
 // CrashCashedOutData represents the Redis structure for a cashed out bet
 type CrashCashedOutData struct {
 	PlayerAddress    string    `json:"playerAddress"`
 	GameID           string    `json:"gameId"`
-	BetAmount        string    `json:"betAmount"` // Wei as string
+	BetAmount        string    `json:"betAmount"` // Stroops as string
 	EntryMultiplier  float64   `json:"entryMultiplier"`
 	CashoutMultiplier float64   `json:"cashoutMultiplier"`
-	Payout           string    `json:"payout"` // Wei as string
+	Payout           string    `json:"payout"` // Stroops as string
 	CashoutTimestamp time.Time `json:"cashoutTimestamp"`
 	BuybackEligible  bool      `json:"buybackEligible"`
 }
@@ -42,10 +42,10 @@ type CrashCashedOutData struct {
 type CandleFlipGameData struct {
 	PlayerAddress string    `json:"playerAddress"`
 	GameID        string    `json:"gameId"`
-	BetPerRoom    string    `json:"betPerRoom"` // Wei as string
+	BetPerRoom    string    `json:"betPerRoom"` // Stroops as string
 	Rooms         uint64    `json:"rooms"`
 	Odds          float64   `json:"odds"`
-	Exposure      string    `json:"exposure"` // Wei as string
+	Exposure      string    `json:"exposure"` // Stroops as string
 	Timestamp     time.Time `json:"timestamp"`
 	TxHash        string    `json:"txHash"`
 }

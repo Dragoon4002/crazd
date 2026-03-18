@@ -61,6 +61,8 @@ func main() {
 	http.HandleFunc("/api/bettor/remove", corsMiddleware(api.HandleRemoveBettor))
 	http.HandleFunc("/api/bettor/list", corsMiddleware(api.HandleGetActiveBettors))
 	http.HandleFunc("/api/leaderboard", corsMiddleware(api.HandleGetLeaderboard))
+	http.HandleFunc("/api/keno/init", corsMiddleware(api.HandleKenoInit))
+	http.HandleFunc("/api/keno/play", corsMiddleware(api.HandleKenoPlay))
 
 	addr := "0.0.0.0:8080"
 	log.Printf("🚀 Server starting on %s", addr)

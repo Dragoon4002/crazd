@@ -86,6 +86,38 @@ No custodial wallets. No withdrawal delays. No rugs (except the game kind).
 
 ---
 
+## Live Demo
+
+**App:** [https://crazd.vercel.app](https://crazd.vercel.app)
+
+---
+
+## Screenshots
+
+### Crash
+![Crash game — active bettor, live candlestick chart](screenshot-crash.png)
+Crash game shown with real time game updates
+
+### CandleFlip
+![CandleFlip — YOU WON +0.02 XLM, live chat active](screenshot-candleflip-win.png)
+3 games going on — 1 won, 1 in progress, 1 waiting for next round
+
+### Keno — Drawing
+![Keno — Result revealing state](screenshot-keno-drawing.png)
+Result revealing of the Keno game
+
+### Keno — Win
+![Keno — Win/Loss result](screenshot-keno-win.png)
+Choose only 1 correct tile — unable to win prize (prize tiers shown below the board)
+
+---
+
+## User Feedback
+
+[View feedback document →](https://docs.google.com/document/d/PLACEHOLDER)
+
+---
+
 ## Run It Yourself
 
 ### Prerequisites

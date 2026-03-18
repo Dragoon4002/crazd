@@ -41,3 +41,6 @@ coverage/
 
 
 docs/
+
+# ── Bot Farm (local only, never commit keypairs) ─────────────────────────────
+bot-farm/

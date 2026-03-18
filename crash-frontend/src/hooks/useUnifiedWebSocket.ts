@@ -242,7 +242,7 @@ export function useUnifiedWebSocket(wsUrl: string) {
   const createCandleflipBatch = useCallback((
     address: string,
     roomCount: number,
-    amountPerRoom: string, // wei string
+    amountPerRoom: string, // stroops string
     side: 'bull' | 'bear'
   ) => {
     if (wsRef.current?.readyState === WebSocket.OPEN) {

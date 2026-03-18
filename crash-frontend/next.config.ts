@@ -3,6 +3,7 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   devIndicators: false,
   reactStrictMode: false,
+  turbopack: {},
   serverExternalPackages: ["pino", "thread-stream", "pino-pretty"],
   webpack: (config, { isServer }) => {
     if (!isServer) {

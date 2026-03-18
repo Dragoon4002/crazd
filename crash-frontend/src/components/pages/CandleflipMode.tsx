@@ -103,7 +103,7 @@ export function CandleflipMode() {
             type: 'create_batch',
             address: playerAddress,
             roomCount: numberOfRooms,
-            amountPerRoom: String(Math.floor(betAmount * 1e18)), // wei
+            amountPerRoom: String(Math.floor(betAmount * 1e7)), // stroops
             side: trend === 'bullish' ? 'bull' : 'bear'
           }));
         };

@@ -165,6 +165,35 @@ func InitSchema(ctx context.Context) error {
 		return fmt.Errorf("failed to create crash_bets table: %w", err)
 	}
 
+	// Create keno_games table
+	kenoGamesSchema := `
+	CREATE TABLE IF NOT EXISTS keno_games (
+		id               SERIAL PRIMARY KEY,
+		game_id          TEXT NOT NULL UNIQUE,
+		server_seed      TEXT NOT NULL,
+		client_seed      TEXT NOT NULL,
+		server_seed_hash TEXT NOT NULL,
+		player_address   TEXT,
+		picks            INTEGER[],
+		risk_level       TEXT,
+		bet_amount       DOUBLE PRECISION,
+		drawn_numbers    INTEGER[],
+		hits             INTEGER,
+		multiplier       DOUBLE PRECISION,
+		payout           DOUBLE PRECISION,
+		tx_hash          TEXT,
+		status           TEXT NOT NULL DEFAULT 'pending',
+		created_at       TIMESTAMP NOT NULL DEFAULT NOW(),
+		completed_at     TIMESTAMP
+	);
+	CREATE INDEX IF NOT EXISTS idx_keno_games_game_id ON keno_games(game_id);
+	CREATE INDEX IF NOT EXISTS idx_keno_games_player  ON keno_games(player_address);
+	`
+
+	if _, err := PostgresPool.Exec(ctx, kenoGamesSchema); err != nil {
+		return fmt.Errorf("failed to create keno_games table: %w", err)
+	}
+
 	// Create wallet_pnl table
 	walletPnLSchema := `
 	CREATE TABLE IF NOT EXISTS wallet_pnl (
@@ -650,6 +679,92 @@ func GetWalletPnLLeaderboard(ctx context.Context, limit int) ([]*WalletPnLRecord
 	}
 
 	return records, nil
+}
+
+/* =========================
+   KENO GAMES
+========================= */
+
+// KenoGameRecord represents a keno game row
+type KenoGameRecord struct {
+	GameID         string
+	ServerSeed     string
+	ClientSeed     string
+	ServerSeedHash string
+	PlayerAddress  string
+	Picks          []int32
+	RiskLevel      string
+	BetAmount      float64
+	DrawnNumbers   []int32
+	Hits           int
+	Multiplier     float64
+	Payout         float64
+	TxHash         string
+	Status         string
+}
+
+// KenoResult holds the computed result to be stored after play
+type KenoResult struct {
+	PlayerAddress string
+	Picks         []int32
+	RiskLevel     string
+	BetAmount     float64
+	DrawnNumbers  []int32
+	Hits          int
+	Multiplier    float64
+	Payout        float64
+	TxHash        string
+}
+
+func StoreKenoGame(ctx context.Context, gameID, serverSeed, clientSeed, serverSeedHash string) error {
+	if PostgresPool == nil {
+		return nil
+	}
+	_, err := PostgresPool.Exec(ctx,
+		`INSERT INTO keno_games (game_id, server_seed, client_seed, server_seed_hash) VALUES ($1, $2, $3, $4)`,
+		gameID, serverSeed, clientSeed, serverSeedHash,
+	)
+	return err
+}
+
+func GetKenoGame(ctx context.Context, gameID string) (*KenoGameRecord, error) {
+	if PostgresPool == nil {
+		return nil, fmt.Errorf("postgres not initialized")
+	}
+	row := PostgresPool.QueryRow(ctx,
+		`SELECT game_id, server_seed, client_seed, server_seed_hash, status FROM keno_games WHERE game_id = $1`,
+		gameID,
+	)
+	var r KenoGameRecord
+	if err := row.Scan(&r.GameID, &r.ServerSeed, &r.ClientSeed, &r.ServerSeedHash, &r.Status); err != nil {
+		return nil, err
+	}
+	return &r, nil
+}
+
+func UpdateKenoGame(ctx context.Context, gameID string, res *KenoResult) error {
+	if PostgresPool == nil {
+		return nil
+	}
+	_, err := PostgresPool.Exec(ctx, `
+		UPDATE keno_games SET
+			player_address = $1,
+			picks          = $2,
+			risk_level     = $3,
+			bet_amount     = $4,
+			drawn_numbers  = $5,
+			hits           = $6,
+			multiplier     = $7,
+			payout         = $8,
+			tx_hash        = $9,
+			status         = 'completed',
+			completed_at   = NOW()
+		WHERE game_id = $10`,
+		res.PlayerAddress, res.Picks, res.RiskLevel, res.BetAmount,
+		res.DrawnNumbers, res.Hits, res.Multiplier, res.Payout,
+		res.TxHash, gameID,
+	)
+	return err
 }
 
 // GetWalletPnLRank returns a specific wallet's rank and PnL

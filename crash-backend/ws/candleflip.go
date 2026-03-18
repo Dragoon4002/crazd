@@ -62,7 +62,7 @@ type CreateBatchMessage struct {
 	Type          string `json:"type"` // "create_batch"
 	Address       string `json:"address"`
 	RoomCount     int    `json:"roomCount"`
-	AmountPerRoom string `json:"amountPerRoom"` // wei
+	AmountPerRoom string `json:"amountPerRoom"` // stroops
 	Side          string `json:"side"` // "bull" or "bear"
 }
 
@@ -419,7 +419,7 @@ func payoutCandleflipWinnings(batch *CandleflipBatch) {
 	batch.PayoutAmount = payout
 	batch.mu.Unlock()
 
-	log.Printf("💰 Calculating payout: %d rooms × %s wei/room × 2 = %s wei",
+	log.Printf("💰 Calculating payout: %d rooms × %s stroops/room × 2 = %s stroops",
 		batch.WonRooms, batch.AmountPerRoom.String(), payout.String())
 
 	// Initialize contract

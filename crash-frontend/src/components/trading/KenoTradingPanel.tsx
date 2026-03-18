@@ -14,12 +14,24 @@ interface KenoTradingPanelProps {
   onPlay: () => void;
   onClearSelections: () => void;
   onAutoPick: () => void;
+  // Seed display
+  clientSeed: string;
+  serverSeedHash: string;
+  serverSeed: string; // empty until game result
+  isInitializing?: boolean;
+  initFailed?: boolean;
+  onRetry?: () => void;
 }
 
 const RISKS: RiskLevel[] = ['classic', 'low', 'medium', 'high'];
 
 const quickBtnClass =
-  'bg-gradient-to-br from-[#9B61DB] to-[#7457CC] rounded-md px-2 py-1.5 text-xs text-white font-medium hover:opacity-90 transition-all active:scale-95';
+  'bg-linear-to-br from-[#9B61DB] to-[#7457CC] rounded-md px-2 py-1.5 text-xs text-white font-medium hover:opacity-90 transition-all active:scale-95';
+
+function truncate(s: string, head = 6, tail = 4): string {
+  if (!s || s.length <= head + tail + 3) return s;
+  return `${s.slice(0, head)}...${s.slice(-tail)}`;
+}
 
 export default function KenoTradingPanel({
   betAmount,
@@ -31,6 +43,12 @@ export default function KenoTradingPanel({
   onPlay,
   onClearSelections,
   onAutoPick,
+  clientSeed,
+  serverSeedHash,
+  serverSeed,
+  isInitializing = false,
+  initFailed = false,
+  onRetry,
 }: KenoTradingPanelProps) {
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -43,14 +61,18 @@ export default function KenoTradingPanel({
 
   const isDrawing = gamePhase === 'drawing';
   const canPlay =
-    gamePhase !== 'drawing' && selectedCount > 0 && betAmount > 0;
+    !isInitializing && gamePhase !== 'drawing' && selectedCount > 0 && betAmount > 0;
 
   const playText =
-    gamePhase === 'drawing'
-      ? 'Drawing...'
-      : gamePhase === 'result'
-        ? 'New Game'
-        : 'Play';
+    isInitializing
+      ? 'Connecting...'
+      : initFailed
+        ? 'Retry Connect'
+        : gamePhase === 'drawing'
+          ? 'Drawing...'
+          : gamePhase === 'result'
+            ? 'New Game'
+            : 'Play';
 
   return (
     <div className="rounded-lg p-4 bg-sidebar border border-border flex flex-col gap-4">
@@ -107,7 +129,7 @@ export default function KenoTradingPanel({
               onClick={() => setRisk(r)}
               className={`flex-1 rounded-md px-2 py-1.5 text-xs font-medium transition-all active:scale-95 capitalize ${
                 risk === r
-                  ? 'bg-gradient-to-br from-[#9B61DB] to-[#7457CC] text-white'
+                  ? 'bg-linear-to-br from-[#9B61DB] to-[#7457CC] text-white'
                   : 'text-gray-400 hover:text-white bg-background border border-border'
               } ${isDrawing ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
@@ -144,18 +166,45 @@ export default function KenoTradingPanel({
         Clear Table
       </button>
 
-      {/* Play */}
+      {/* Play / Retry */}
       <button
-        onClick={onPlay}
-        disabled={!canPlay && gamePhase !== 'result'}
+        onClick={initFailed ? onRetry : onPlay}
+        disabled={isInitializing || (!initFailed && !canPlay && gamePhase !== 'result')}
         className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
-          canPlay || gamePhase === 'result'
-            ? 'bg-gradient-to-br from-[#9B61DB] to-[#7457CC] hover:opacity-90 text-white active:scale-95'
-            : 'bg-background border border-border text-gray-400 cursor-not-allowed'
+          isInitializing
+            ? 'bg-background border border-border text-gray-400 cursor-not-allowed'
+            : initFailed
+              ? 'bg-red-500/20 border border-red-500/50 text-red-300 hover:bg-red-500/30 active:scale-95'
+              : canPlay || gamePhase === 'result'
+                ? 'bg-linear-to-br from-[#9B61DB] to-[#7457CC] hover:opacity-90 text-white active:scale-95'
+                : 'bg-background border border-border text-gray-400 cursor-not-allowed'
         }`}
       >
         {playText}
       </button>
+
+      {/* Provably Fair Seeds */}
+      {(clientSeed || serverSeedHash) && (
+        <div className="border-t border-border pt-3 flex flex-col gap-1.5 text-[11px] font-mono">
+          {clientSeed && (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-gray-500 shrink-0">Client</span>
+              <span className="text-gray-300 truncate">{truncate(clientSeed)}</span>
+            </div>
+          )}
+          {serverSeed ? (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-green-400 shrink-0">Verified</span>
+              <span className="text-green-300 truncate">{truncate(serverSeed)}</span>
+            </div>
+          ) : serverSeedHash ? (
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-gray-500 shrink-0">Sealed</span>
+              <span className="text-gray-400 truncate">{truncate(serverSeedHash)}</span>
+            </div>
+          ) : null}
+        </div>
+      )}
     </div>
   );
 }

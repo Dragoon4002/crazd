@@ -67,6 +67,33 @@ func SetContractClient(client *contract.GameHouseContract) {
 	log.Println("✅ Contract client set for crash payouts")
 }
 
+// PayPlayerAsync fires a non-blocking PayPlayer contract call.
+// Shared by crash, keno, and any other game that needs server-side payouts.
+func PayPlayerAsync(playerAddress string, payoutAmount float64) {
+	contractClientMutex.RLock()
+	client := contractClient
+	contractClientMutex.RUnlock()
+
+	if client == nil {
+		log.Printf("⚠️  Contract client not available — skipping payout to %s", playerAddress)
+		return
+	}
+
+	payoutStroops := new(big.Float).Mul(big.NewFloat(payoutAmount), big.NewFloat(1e7))
+	payoutBigInt := new(big.Int)
+	payoutStroops.Int(payoutBigInt)
+
+	go func() {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		if err := client.PayPlayer(ctx, playerAddress, payoutBigInt); err != nil {
+			log.Printf("❌ PayPlayer failed for %s: %v", playerAddress, err)
+		} else {
+			log.Printf("✅ PayPlayer success for %s (%.4f XLM)", playerAddress, payoutAmount)
+		}
+	}()
+}
+
 // Message types from client
 type ClientMessage struct {
 	Type string                 `json:"type"`
@@ -562,7 +589,7 @@ func handleCrashCashout(client *ClientConnection, data map[string]interface{}) {
 	profit := betAmount * (cashoutMultiplier - 1)
 	payoutAmount := betAmount + profit
 
-	log.Printf("💸 Payout calculated - Player: %s, Payout: %.4f MNT (Profit: %.4f)",
+	log.Printf("💸 Payout calculated - Player: %s, Payout: %.4f XLM (Profit: %.4f)",
 		playerAddress, payoutAmount, profit)
 
 	// Call payPlayer contract function
@@ -631,7 +658,7 @@ func handleCrashCashout(client *ClientConnection, data map[string]interface{}) {
 		"betAmount":         betAmount,
 		"payoutAmount":      payoutAmount,
 		"profit":            profit,
-		"message":           fmt.Sprintf("Cashed out at %.2fx! Profit: %.4f MNT", cashoutMultiplier, profit),
+		"message":           fmt.Sprintf("Cashed out at %.2fx! Profit: %.4f XLM", cashoutMultiplier, profit),
 	})
 }
 

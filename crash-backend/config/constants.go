@@ -6,29 +6,6 @@ import (
 )
 
 /* =========================
-   NETWORK CONFIGURATION
-========================= */
-
-const (
-	// Mantle Sepolia Testnet
-	MantleSepoliaRPC = "https://rpc.sepolia.mantle.xyz"
-	MantleChainID    = 5003
-)
-
-/* =========================
-   CONTRACT CONFIGURATION
-========================= */
-
-const (
-	// GameHouseV2 Contract
-	GameHouseV2Address = "0x43a01A18a2C947179595A7b17bDCc3d88ecF04F5"
-
-	// GameHouseV3 Contract (to be deployed)
-	// TODO: Update this once V3 is deployed
-	GameHouseV3Address = "0x0000000000000000000000000000000000000000"
-)
-
-/* =========================
    GAME MECHANICS - CRASH
 ========================= */
 
@@ -54,16 +31,16 @@ const (
 	MergeThreshold       = 100              // Number of candles before merging
 
 	// Peak distribution probabilities (sum to 1.0)
-	PeakVeryLow  = 0.40 // 40% chance: 1.0x - 1.5x
-	PeakLow      = 0.70 // 30% chance: 1.5x - 3.0x (cumulative)
-	PeakMedium   = 0.88 // 18% chance: 3.0x - 10.0x (cumulative)
-	PeakHigh     = 0.97 // 9% chance: 10.0x - 50.0x (cumulative)
-	PeakExtreme  = 1.00 // 3% chance: 50.0x - 200.0x (cumulative)
-	PeakVeryLowMax  = 1.5
-	PeakLowMax      = 3.0
-	PeakMediumMax   = 10.0
-	PeakHighMax     = 50.0
-	PeakExtremeMax  = 200.0
+	PeakVeryLow    = 0.40 // 40% chance: 1.0x - 1.5x
+	PeakLow        = 0.70 // 30% chance: 1.5x - 3.0x (cumulative)
+	PeakMedium     = 0.88 // 18% chance: 3.0x - 10.0x (cumulative)
+	PeakHigh       = 0.97 // 9% chance: 10.0x - 50.0x (cumulative)
+	PeakExtreme    = 1.00 // 3% chance: 50.0x - 200.0x (cumulative)
+	PeakVeryLowMax = 1.5
+	PeakLowMax     = 3.0
+	PeakMediumMax  = 10.0
+	PeakHighMax    = 50.0
+	PeakExtremeMax = 200.0
 )
 
 /* =========================
@@ -71,17 +48,17 @@ const (
 ========================= */
 
 var (
-	// Base odds for CandleFlip (2.0x in 18-decimal format)
-	BaseOdds = big.NewInt(2e18)
+	// Base odds for CandleFlip (2.0x)
+	BaseOdds = big.NewInt(2)
 
-	// Minimum odds (1.2x in 18-decimal format)
-	MinOdds = big.NewInt(1.2e18)
+	// Minimum odds (1.2x, scaled ×10 = 12)
+	MinOdds = big.NewInt(12)
 
 	// Reserve games for liquidity calculation
 	ReserveGames = uint64(20)
 
-	// Decimal precision
-	DecimalPrecision = big.NewInt(1e18)
+	// Decimal precision (scale factor 10)
+	DecimalPrecision = big.NewInt(10)
 )
 
 // GetBaseOddsFloat returns BASE_ODDS as float64 (2.0)
@@ -151,22 +128,6 @@ const (
 )
 
 /* =========================
-   RELAYER CONFIGURATION
-========================= */
-
-const (
-	// Gas limits and pricing
-	RelayerGasLimit    = 150000           // Maximum gas for gasless transactions
-	RelayerMaxGasPrice = 10000000000      // 10 Gwei max gas price
-	RelayerMinBalance  = 50000000000000000 // 0.05 MNT minimum balance
-
-	// Retry configuration
-	MaxRetries     = 3
-	RetryDelay     = 2 * time.Second
-	TransactionTimeout = 30 * time.Second
-)
-
-/* =========================
    API CONFIGURATION
 ========================= */
 
@@ -205,18 +166,18 @@ const (
 ========================= */
 
 const (
-	// Minimum bet amounts (in wei, 18 decimals)
-	MinBetAmount = 1000000000000000 // 0.001 MNT
+	// Minimum bet amounts (in stroops, 1 XLM = 10_000_000 stroops)
+	MinBetAmount = 10000 // 0.001 XLM
 
-	// Maximum bet amounts (in wei, 18 decimals)
-	MaxBetAmount = 100000000000000000000 // 100 MNT
+	// Maximum bet amounts (in stroops)
+	MaxBetAmount = 1000000000000 // 100,000 XLM
 
 	// CandleFlip room limits
 	MinRooms = 1
 	MaxRooms = 10
 
 	// Multiplier limits
-	MinMultiplier = 1.0  // 1.0x minimum
+	MinMultiplier = 1.0    // 1.0x minimum
 	MaxMultiplier = 1000.0 // 1000x maximum
 )
 
@@ -224,43 +185,12 @@ const (
    HELPER FUNCTIONS
 ========================= */
 
-// WeiToMNT converts wei (uint256) to MNT (float64)
-func WeiToMNT(wei *big.Int) float64 {
-	if wei == nil {
-		return 0
-	}
-	// Convert to float64 and divide by 1e18
-	weiFloat := new(big.Float).SetInt(wei)
-	divisor := new(big.Float).SetFloat64(1e18)
-	result := new(big.Float).Quo(weiFloat, divisor)
-	mnt, _ := result.Float64()
-	return mnt
+// StroopsToXLM converts stroops (int64) to XLM (float64)
+func StroopsToXLM(stroops int64) float64 {
+	return float64(stroops) / 1e7
 }
 
-// MNTToWei converts MNT (float64) to wei (*big.Int)
-func MNTToWei(mnt float64) *big.Int {
-	// Multiply by 1e18 and convert to big.Int
-	weiFloat := new(big.Float).SetFloat64(mnt * 1e18)
-	wei, _ := weiFloat.Int(nil)
-	return wei
-}
-
-// MultiplierToWei converts a multiplier (float64) to wei format (*big.Int)
-func MultiplierToWei(multiplier float64) *big.Int {
-	// Multiply by 1e18 for 18-decimal precision
-	weiFloat := new(big.Float).SetFloat64(multiplier * 1e18)
-	wei, _ := weiFloat.Int(nil)
-	return wei
-}
-
-// WeiToMultiplier converts wei format (*big.Int) to multiplier (float64)
-func WeiToMultiplier(wei *big.Int) float64 {
-	if wei == nil {
-		return 0
-	}
-	weiFloat := new(big.Float).SetInt(wei)
-	divisor := new(big.Float).SetFloat64(1e18)
-	result := new(big.Float).Quo(weiFloat, divisor)
-	multiplier, _ := result.Float64()
-	return multiplier
+// XLMToStroops converts XLM (float64) to stroops (int64)
+func XLMToStroops(xlm float64) int64 {
+	return int64(xlm * 1e7)
 }
