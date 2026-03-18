@@ -54,7 +54,7 @@ More ways to lose your XLM responsibly.
 | Layer | Tech |
 |---|---|
 | Frontend | Next.js 16, React 19, TypeScript, Tailwind v4 |
-| Backend | Go 1.24, Gorilla WebSocket |
+| Backend | Go 1.26.0, Gorilla WebSocket |
 | Blockchain | Stellar / Soroban |
 | Wallet | Freighter |
 | Database | PostgreSQL, Redis |
@@ -110,19 +110,11 @@ Result revealing of the Keno game
 ![Keno — Win/Loss result](screenshot-keno-win.png)
 Choose only 1 correct tile — unable to win prize (prize tiers shown below the board)
 
----
-
-## User Feedback
-
-[View feedback document →](https://docs.google.com/document/d/PLACEHOLDER)
-
----
-
 ## Run It Yourself
 
 ### Prerequisites
 - Node.js 20+
-- Go 1.24+
+- Go 1.26+
 - PostgreSQL + Redis
 - [Freighter](https://freighter.app) browser extension — set to **Testnet**
 
@@ -154,10 +146,13 @@ NEXT_PUBLIC_WS_URL=ws://localhost:8080
 
 **`crash-backend/.env`**
 ```env
-SERVER_PRIVATE_KEY=<hex ed25519 key>
+PORT=8080
+HOST=0.0.0.0
+SERVER_PRIVATE_KEY=<stellar secret key>
 CONTRACT_ID=<soroban contract id>
 RPC_URL=https://soroban-testnet.stellar.org
-DATABASE_URL=postgres://...
-REDIS_URL=...
+DATABASE_URL=postgresql://...
+REDIS_URL=<host:port>
 REDIS_PASSWORD=...
+REDIS_DB=0
 ```
