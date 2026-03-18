@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"os"
 
 	"goLangServer/api"
 	"goLangServer/contract"
@@ -64,7 +65,11 @@ func main() {
 	http.HandleFunc("/api/keno/init", corsMiddleware(api.HandleKenoInit))
 	http.HandleFunc("/api/keno/play", corsMiddleware(api.HandleKenoPlay))
 
-	addr := "0.0.0.0:8080"
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	addr := "0.0.0.0:" + port
 	log.Printf("🚀 Server starting on %s", addr)
 	log.Println("")
 	log.Println("📡 WebSocket Endpoints:")
