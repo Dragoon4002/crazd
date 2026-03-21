@@ -40,7 +40,7 @@ func HandleKenoInit(w http.ResponseWriter, r *http.Request) {
 	defer cancel()
 
 	if err := db.StoreKenoGame(ctx, gameID, serverSeed, clientSeed, serverSeedHash); err != nil {
-		log.Printf("❌ StoreKenoGame: %v", err)
+		log.Printf(" StoreKenoGame: %v", err)
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return
 	}
@@ -138,7 +138,7 @@ func HandleKenoPlay(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := db.UpdateKenoGame(ctx, req.GameID, result); err != nil {
-		log.Printf("❌ UpdateKenoGame: %v", err)
+		log.Printf(" UpdateKenoGame: %v", err)
 		// Non-fatal — still reveal the seed
 	}
 
@@ -147,11 +147,11 @@ func HandleKenoPlay(w http.ResponseWriter, r *http.Request) {
 		gCtx, gCancel := context.WithTimeout(context.Background(), 5*time.Second)
 		defer gCancel()
 		if err := db.SubtractWalletPnL(gCtx, req.PlayerAddress, req.BetAmount); err != nil {
-			log.Printf("⚠️  SubtractWalletPnL: %v", err)
+			log.Printf("  SubtractWalletPnL: %v", err)
 		}
 		if payout > 0 {
 			if err := db.AddWalletPnL(gCtx, req.PlayerAddress, payout); err != nil {
-				log.Printf("⚠️  AddWalletPnL: %v", err)
+				log.Printf("  AddWalletPnL: %v", err)
 			}
 		}
 	}()
@@ -161,7 +161,7 @@ func HandleKenoPlay(w http.ResponseWriter, r *http.Request) {
 		ws.PayPlayerAsync(req.PlayerAddress, payout)
 	}
 
-	log.Printf("🎲 Keno game %s — player %s | picks=%d hits=%d mult=%.2fx payout=%.4f",
+	log.Printf(" Keno game %s — player %s | picks=%d hits=%d mult=%.2fx payout=%.4f",
 		req.GameID, req.PlayerAddress, len(req.Picks), hits, multiplier, payout)
 
 	w.Header().Set("Content-Type", "application/json")

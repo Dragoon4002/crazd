@@ -42,7 +42,7 @@ func handleChatMessages() {
 		for client := range chatClients {
 			err := client.Conn.WriteJSON(msg)
 			if err != nil {
-				log.Printf("❌ Error sending chat message to client %s: %v", client.ID, err)
+				log.Printf(" Error sending chat message to client %s: %v", client.ID, err)
 				client.Conn.Close()
 				delete(chatClients, client)
 			}
@@ -52,11 +52,11 @@ func handleChatMessages() {
 }
 
 func HandleChatWS(w http.ResponseWriter, r *http.Request) {
-	log.Println("💬 Chat WebSocket connection attempt from:", r.RemoteAddr)
+	log.Println(" Chat WebSocket connection attempt from:", r.RemoteAddr)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("❌ Chat WebSocket upgrade failed:", err)
+		log.Println(" Chat WebSocket upgrade failed:", err)
 		return
 	}
 
@@ -74,7 +74,7 @@ func HandleChatWS(w http.ResponseWriter, r *http.Request) {
 	chatClients[client] = true
 	chatMutex.Unlock()
 
-	log.Printf("✅ Chat client connected! ID: %s, Total chat clients: %d", client.ID, len(chatClients))
+	log.Printf(" Chat client connected! ID: %s, Total chat clients: %d", client.ID, len(chatClients))
 
 	// Send welcome message
 	welcomeMsg := ChatMessage{
@@ -102,7 +102,7 @@ func HandleChatWS(w http.ResponseWriter, r *http.Request) {
 		chatBroadcast <- leaveMsg
 
 		conn.Close()
-		log.Printf("👋 Chat client disconnected. ID: %s, Total chat clients: %d", client.ID, len(chatClients))
+		log.Printf(" Chat client disconnected. ID: %s, Total chat clients: %d", client.ID, len(chatClients))
 	}()
 
 	// Listen for messages
@@ -111,7 +111,7 @@ func HandleChatWS(w http.ResponseWriter, r *http.Request) {
 		err := conn.ReadJSON(&msg)
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("❌ Chat WebSocket error: %v", err)
+				log.Printf(" Chat WebSocket error: %v", err)
 			}
 			break
 		}
@@ -122,7 +122,7 @@ func HandleChatWS(w http.ResponseWriter, r *http.Request) {
 		msg.UserId = client.ID
 		msg.Type = "message"
 
-		log.Printf("💬 Chat message from %s: %s", client.Username, msg.Message)
+		log.Printf(" Chat message from %s: %s", client.Username, msg.Message)
 
 		// Broadcast to all clients
 		chatBroadcast <- msg

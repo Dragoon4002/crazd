@@ -59,12 +59,12 @@ func LoadCrashHistoryFromDB() {
 
 	records, err := db.GetRecentCrashHistory(ctx, MaxGameHistory)
 	if err != nil {
-		log.Printf("⚠️  Failed to load crash history from DB: %v", err)
+		log.Printf("  Failed to load crash history from DB: %v", err)
 		return
 	}
 
 	if len(records) == 0 {
-		log.Println("📭 No crash history found in DB")
+		log.Println(" No crash history found in DB")
 		return
 	}
 
@@ -82,11 +82,11 @@ func LoadCrashHistoryFromDB() {
 		})
 	}
 
-	log.Printf("📥 Loaded %d crash games from DB", len(crashGameHistory))
+	log.Printf(" Loaded %d crash games from DB", len(crashGameHistory))
 }
 
 func runCrashGameLoop() {
-	log.Println("🎰 Crash game loop started")
+	log.Println(" Crash game loop started")
 
 	for {
 		serverSeed, _ := crypto.GenerateServerSeed()
@@ -383,14 +383,14 @@ func runCrashGameLoop() {
 				CreatedAt:          ts,
 			})
 			if err != nil {
-				log.Printf("⚠️  Failed to store crash history: %v", err)
+				log.Printf("  Failed to store crash history: %v", err)
 			}
 		}(gameID, serverSeed, gameResult.PeakMultiplier, groups, now)
 
 		// Broadcast updated history to all crash subscribers
 		broadcastCrashHistory()
 
-		log.Printf("🎲 Crash game %s finished - Peak: %.2fx, Final: %.2fx", gameID, gameResult.PeakMultiplier, price)
+		log.Printf(" Crash game %s finished - Peak: %.2fx, Final: %.2fx", gameID, gameResult.PeakMultiplier, price)
 
 		// Mark all remaining active bets as lost in database
 		go func(gid string) {
@@ -399,7 +399,7 @@ func runCrashGameLoop() {
 
 			err := db.MarkBetsAsLost(ctx, gid)
 			if err != nil {
-				log.Printf("⚠️  Failed to mark bets as lost: %v", err)
+				log.Printf("  Failed to mark bets as lost: %v", err)
 			}
 		}(contractGameID.String())
 
@@ -409,7 +409,7 @@ func runCrashGameLoop() {
 			"type":    "crash_history",
 			"history": updatedHistory,
 		}
-		log.Printf("📜 Broadcasted updated crash history (%d games)", len(updatedHistory))
+		log.Printf(" Broadcasted updated crash history (%d games)", len(updatedHistory))
 
 		// Clear all active bettors for next game
 		ClearActiveBettors()
@@ -446,7 +446,7 @@ func mergeGroups(groups []game.CandleGroup, currentDuration int64) ([]game.Candl
 		}
 	}
 
-	log.Printf("🔄 Merged %d groups into %d (new duration: %dms)", len(groups), len(merged), newDuration)
+	log.Printf(" Merged %d groups into %d (new duration: %dms)", len(groups), len(merged), newDuration)
 	return merged, newDuration
 }
 
@@ -462,7 +462,7 @@ func AddActiveBettor(address string, amount, multiplier float64) {
 		BetTime:         time.Now(),
 	}
 
-	log.Printf("➕ Bettor added: %s @ %.2fx (%.4f MNT)", address, multiplier, amount)
+	log.Printf(" Bettor added: %s @ %.2fx (%.4f MNT)", address, multiplier, amount)
 	broadcastActiveBettors()
 }
 
@@ -473,7 +473,7 @@ func RemoveActiveBettor(address string) {
 
 	if _, exists := activeBettors[address]; exists {
 		delete(activeBettors, address)
-		log.Printf("➖ Bettor removed: %s", address)
+		log.Printf(" Bettor removed: %s", address)
 		broadcastActiveBettors()
 	}
 }
@@ -487,7 +487,7 @@ func ClearActiveBettors() {
 	activeBettors = make(map[string]*ActiveBettor)
 
 	if count > 0 {
-		log.Printf("🧹 Cleared %d active bettors", count)
+		log.Printf(" Cleared %d active bettors", count)
 		broadcastActiveBettors()
 	}
 }

@@ -64,7 +64,7 @@ func SetContractClient(client *contract.GameHouseContract) {
 	contractClientMutex.Lock()
 	defer contractClientMutex.Unlock()
 	contractClient = client
-	log.Println("✅ Contract client set for crash payouts")
+	log.Println(" Contract client set for crash payouts")
 }
 
 // PayPlayerAsync fires a non-blocking PayPlayer contract call.
@@ -75,7 +75,7 @@ func PayPlayerAsync(playerAddress string, payoutAmount float64) {
 	contractClientMutex.RUnlock()
 
 	if client == nil {
-		log.Printf("⚠️  Contract client not available — skipping payout to %s", playerAddress)
+		log.Printf("  Contract client not available — skipping payout to %s", playerAddress)
 		return
 	}
 
@@ -87,9 +87,9 @@ func PayPlayerAsync(playerAddress string, payoutAmount float64) {
 		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 		defer cancel()
 		if err := client.PayPlayer(ctx, playerAddress, payoutBigInt); err != nil {
-			log.Printf("❌ PayPlayer failed for %s: %v", playerAddress, err)
+			log.Printf(" PayPlayer failed for %s: %v", playerAddress, err)
 		} else {
-			log.Printf("✅ PayPlayer success for %s (%.4f XLM)", playerAddress, payoutAmount)
+			log.Printf(" PayPlayer success for %s (%.4f XLM)", playerAddress, payoutAmount)
 		}
 	}()
 }
@@ -121,12 +121,12 @@ func loadChatHistoryFromDB() {
 
 	messages, err := db.GetRecentChatMessages(ctx, maxChatHistory)
 	if err != nil {
-		log.Printf("⚠️  Failed to load chat history from DB: %v", err)
+		log.Printf("  Failed to load chat history from DB: %v", err)
 		return
 	}
 
 	if len(messages) == 0 {
-		log.Println("📨 No chat history found in database")
+		log.Println(" No chat history found in database")
 		return
 	}
 
@@ -142,12 +142,12 @@ func loadChatHistoryFromDB() {
 	}
 	chatHistoryMutex.Unlock()
 
-	log.Printf("✅ Loaded %d chat messages from database", len(messages))
+	log.Printf(" Loaded %d chat messages from database", len(messages))
 }
 
 // runEventHub is the central message dispatcher
 func runEventHub() {
-	log.Println("🚀 Unified Event Hub started")
+	log.Println(" Unified Event Hub started")
 
 	for {
 		select {
@@ -155,7 +155,7 @@ func runEventHub() {
 			clientsMutex.Lock()
 			clients[client] = true
 			clientsMutex.Unlock()
-			log.Printf("✅ Client registered: %s (Total: %d)", client.ID, len(clients))
+			log.Printf(" Client registered: %s (Total: %d)", client.ID, len(clients))
 
 		case client := <-clientUnregister:
 			clientsMutex.Lock()
@@ -164,7 +164,7 @@ func runEventHub() {
 				close(client.Send)
 			}
 			clientsMutex.Unlock()
-			log.Printf("👋 Client unregistered: %s (Total: %d)", client.ID, len(clients))
+			log.Printf(" Client unregistered: %s (Total: %d)", client.ID, len(clients))
 
 		case message := <-crashBroadcast:
 			broadcastToSubscribers("crash", message)
@@ -191,7 +191,7 @@ func runEventHub() {
 // runPeriodicRoomBroadcaster broadcasts room updates every 200ms
 // Tested to handle up to 10 rooms in parallel batches efficiently
 func runPeriodicRoomBroadcaster() {
-	log.Println("📡 Periodic room broadcaster started (200ms interval, max 10 rooms per batch)")
+	log.Println(" Periodic room broadcaster started (200ms interval, max 10 rooms per batch)")
 	ticker := time.NewTicker(200 * time.Millisecond)
 	defer ticker.Stop()
 
@@ -226,7 +226,7 @@ func runPeriodicRoomBroadcaster() {
 func broadcastToSubscribers(channel string, message interface{}) {
 	data, err := json.Marshal(message)
 	if err != nil {
-		log.Printf("❌ Failed to marshal message for %s: %v", channel, err)
+		log.Printf(" Failed to marshal message for %s: %v", channel, err)
 		return
 	}
 
@@ -243,7 +243,7 @@ func broadcastToSubscribers(channel string, message interface{}) {
 			case client.Send <- data:
 			default:
 				// Client's send channel is full, skip
-				log.Printf("⚠️  Client %s send buffer full, skipping message", client.ID)
+				log.Printf("  Client %s send buffer full, skipping message", client.ID)
 			}
 		}
 	}
@@ -251,11 +251,11 @@ func broadcastToSubscribers(channel string, message interface{}) {
 
 // HandleUnifiedWS is the single WebSocket endpoint
 func HandleUnifiedWS(w http.ResponseWriter, r *http.Request) {
-	log.Println("📥 Unified WebSocket connection from:", r.RemoteAddr)
+	log.Println(" Unified WebSocket connection from:", r.RemoteAddr)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("❌ WebSocket upgrade failed:", err)
+		log.Println(" WebSocket upgrade failed:", err)
 		return
 	}
 
@@ -287,7 +287,7 @@ func (c *ClientConnection) writePump() {
 		c.writeMutex.Unlock()
 
 		if err != nil {
-			log.Printf("❌ Write error for client %s: %v", c.ID, err)
+			log.Printf(" Write error for client %s: %v", c.ID, err)
 			return
 		}
 	}
@@ -304,14 +304,14 @@ func (c *ClientConnection) readPump() {
 		_, messageBytes, err := c.Conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("❌ Read error for client %s: %v", c.ID, err)
+				log.Printf(" Read error for client %s: %v", c.ID, err)
 			}
 			break
 		}
 
 		var msg ClientMessage
 		if err := json.Unmarshal(messageBytes, &msg); err != nil {
-			log.Printf("❌ Failed to parse message from client %s: %v", c.ID, err)
+			log.Printf(" Failed to parse message from client %s: %v", c.ID, err)
 			continue
 		}
 
@@ -327,7 +327,7 @@ func (c *ClientConnection) handleMessage(msg ClientMessage) {
 		c.mu.Lock()
 		c.Subscriptions[channel] = true
 		c.mu.Unlock()
-		log.Printf("📡 Client %s subscribed to: %s", c.ID, channel)
+		log.Printf(" Client %s subscribed to: %s", c.ID, channel)
 
 		// Send initial data for the channel
 		c.sendInitialData(channel)
@@ -337,7 +337,7 @@ func (c *ClientConnection) handleMessage(msg ClientMessage) {
 		c.mu.Lock()
 		delete(c.Subscriptions, channel)
 		c.mu.Unlock()
-		log.Printf("📴 Client %s unsubscribed from: %s", c.ID, channel)
+		log.Printf(" Client %s unsubscribed from: %s", c.ID, channel)
 
 	case "create_room":
 		handleCreateRoom(msg.Data)
@@ -377,7 +377,7 @@ func (c *ClientConnection) handleMessage(msg ClientMessage) {
 		})
 
 	default:
-		log.Printf("⚠️  Unknown message type from client %s: %s", c.ID, msg.Type)
+		log.Printf("  Unknown message type from client %s: %s", c.ID, msg.Type)
 	}
 }
 
@@ -394,9 +394,9 @@ func (c *ClientConnection) sendInitialData(channel string) {
 			"history": history,
 		}
 		if err := c.writeJSON(historyMsg); err != nil {
-			log.Printf("⚠️  Failed to send crash history to client %s: %v", c.ID, err)
+			log.Printf("  Failed to send crash history to client %s: %v", c.ID, err)
 		} else {
-			log.Printf("📨 Client %s subscribed to crash - sent %d history items", c.ID, len(history))
+			log.Printf(" Client %s subscribed to crash - sent %d history items", c.ID, len(history))
 		}
 
 		// Send active bettors immediately
@@ -407,14 +407,14 @@ func (c *ClientConnection) sendInitialData(channel string) {
 			"count":   len(bettors),
 		}
 		if err := c.writeJSON(bettorsMsg); err != nil {
-			log.Printf("⚠️  Failed to send active bettors to client %s: %v", c.ID, err)
+			log.Printf("  Failed to send active bettors to client %s: %v", c.ID, err)
 		} else {
-			log.Printf("📨 Client %s - sent %d active bettors", c.ID, len(bettors))
+			log.Printf(" Client %s - sent %d active bettors", c.ID, len(bettors))
 		}
 
 	case "rooms":
 		// No initial sync needed - periodic broadcasts every 200ms
-		log.Printf("📨 Client %s subscribed to rooms (will receive next broadcast within 200ms)", c.ID)
+		log.Printf(" Client %s subscribed to rooms (will receive next broadcast within 200ms)", c.ID)
 
 	case "chat":
 		// Send chat history from in-memory buffer
@@ -429,7 +429,7 @@ func (c *ClientConnection) sendInitialData(channel string) {
 			c.Send <- data
 		}
 
-		log.Printf("📨 Client %s joined chat (sent %d history messages)", c.ID, len(history))
+		log.Printf(" Client %s joined chat (sent %d history messages)", c.ID, len(history))
 	}
 }
 
@@ -487,7 +487,7 @@ func handleCreateRoom(data map[string]interface{}) {
 		}
 		globalRoomsMutex.Unlock()
 		BroadcastRoomUpdate()
-		log.Printf("🎮 Candleflip room %s created by %s vs Bot '%s' (player side: %s, contractGameId: %s)",
+		log.Printf(" Candleflip room %s created by %s vs Bot '%s' (player side: %s, contractGameId: %s)",
 			roomID, creatorId, GetBotName(botNameSeed), trend, contractGameId)
 
 		// Game will auto-start when client connects to /candleflip WebSocket
@@ -523,7 +523,7 @@ func handleChatMessage(client *ClientConnection, data map[string]interface{}) {
 			Timestamp:     now,
 		})
 		if err != nil {
-			log.Printf("⚠️  Failed to store chat message in PostgreSQL: %v", err)
+			log.Printf("  Failed to store chat message in PostgreSQL: %v", err)
 		}
 	}()
 
@@ -539,8 +539,8 @@ func handleCrashBetPlaced(client *ClientConnection, data map[string]interface{})
 	entryMultiplier := data["entryMultiplier"].(float64)
 	transactionHash := data["transactionHash"].(string)
 
-	log.Println("🎯 handleCrashBetPlaced called - Processing bet placement")
-	log.Printf("🎲 Crash bet placed - Player: %s, Amount: %.4f, Entry: %.2fx, GameID: %s, TxHash: %s",
+	log.Println(" handleCrashBetPlaced called - Processing bet placement")
+	log.Printf(" Crash bet placed - Player: %s, Amount: %.4f, Entry: %.2fx, GameID: %s, TxHash: %s",
 		playerAddress, betAmount, entryMultiplier, gameId, transactionHash)
 
 	// Store in database
@@ -559,12 +559,12 @@ func handleCrashBetPlaced(client *ClientConnection, data map[string]interface{})
 			CreatedAt:         time.Now(),
 		})
 		if err != nil {
-			log.Printf("⚠️  Failed to store crash bet in PostgreSQL: %v", err)
+			log.Printf("  Failed to store crash bet in PostgreSQL: %v", err)
 		}
 
 		// Subtract bet amount from wallet PnL
 		if err := db.SubtractWalletPnL(ctx, playerAddress, betAmount); err != nil {
-			log.Printf("⚠️  Failed to update wallet PnL: %v", err)
+			log.Printf("  Failed to update wallet PnL: %v", err)
 		}
 	}()
 
@@ -573,7 +573,7 @@ func handleCrashBetPlaced(client *ClientConnection, data map[string]interface{})
 }
 
 func handleCrashCashout(client *ClientConnection, data map[string]interface{}) {
-	log.Println("🎯 handleCrashCashout called - Data:", data)
+	log.Println(" handleCrashCashout called - Data:", data)
 
 	playerAddress := data["playerAddress"].(string)
 	userId := data["userId"].(string)
@@ -582,14 +582,14 @@ func handleCrashCashout(client *ClientConnection, data map[string]interface{}) {
 	betAmount := data["betAmount"].(float64)
 	entryMultiplier := data["entryMultiplier"].(float64)
 
-	log.Printf("💰 Crash cashout request - Player: %s, GameID: %s, UserID: %s, Cashout: %.2fx, BetAmount: %.4f, Entry: %.2fx",
+	log.Printf(" Crash cashout request - Player: %s, GameID: %s, UserID: %s, Cashout: %.2fx, BetAmount: %.4f, Entry: %.2fx",
 		playerAddress, gameId, userId, cashoutMultiplier, betAmount, entryMultiplier)
 
 	// Calculate payout
 	profit := betAmount * (cashoutMultiplier - 1)
 	payoutAmount := betAmount + profit
 
-	log.Printf("💸 Payout calculated - Player: %s, Payout: %.4f XLM (Profit: %.4f)",
+	log.Printf(" Payout calculated - Player: %s, Payout: %.4f XLM (Profit: %.4f)",
 		playerAddress, payoutAmount, profit)
 
 	// Call payPlayer contract function
@@ -598,7 +598,7 @@ func handleCrashCashout(client *ClientConnection, data map[string]interface{}) {
 	hasContract := contractClient != nil
 	contractClientMutex.RUnlock()
 
-	log.Printf("💳 Contract client available: %v", hasContract)
+	log.Printf(" Contract client available: %v", hasContract)
 
 	if hasContract {
 		// Convert payout amount to stroops (7 decimals, 1 XLM = 10_000_000 stroops)
@@ -606,7 +606,7 @@ func handleCrashCashout(client *ClientConnection, data map[string]interface{}) {
 		payoutBigInt := new(big.Int)
 		payoutStroops.Int(payoutBigInt)
 
-		log.Printf("💸 Calling payPlayer contract - Player: %s, PayoutStroops: %s", playerAddress, payoutBigInt.String())
+		log.Printf(" Calling payPlayer contract - Player: %s, PayoutStroops: %s", playerAddress, payoutBigInt.String())
 
 		// Call contract (async, don't block game flow)
 		go func() {
@@ -617,17 +617,17 @@ func handleCrashCashout(client *ClientConnection, data map[string]interface{}) {
 			client := contractClient
 			contractClientMutex.RUnlock()
 
-			log.Printf("🔄 Executing contract.PayPlayer...")
+			log.Printf(" Executing contract.PayPlayer...")
 			err := client.PayPlayer(ctx, playerAddress, payoutBigInt)
 			if err != nil {
-				log.Printf("❌ Failed to call payPlayer contract: %v", err)
+				log.Printf(" Failed to call payPlayer contract: %v", err)
 				// Don't block user experience - they still get credited in DB
 			} else {
-				log.Printf("✅ payPlayer contract call successful for %s", playerAddress)
+				log.Printf(" payPlayer contract call successful for %s", playerAddress)
 			}
 		}()
 	} else {
-		log.Printf("⚠️  Contract client not available - skipping on-chain payout")
+		log.Printf("  Contract client not available - skipping on-chain payout")
 	}
 
 	// Update database (with empty tx hash for now, contract call is async)
@@ -637,12 +637,12 @@ func handleCrashCashout(client *ClientConnection, data map[string]interface{}) {
 
 		err := db.UpdateCrashBetCashout(ctx, gameId, playerAddress, cashoutMultiplier, payoutAmount, payoutTxHash)
 		if err != nil {
-			log.Printf("⚠️  Failed to update crash bet: %v", err)
+			log.Printf("  Failed to update crash bet: %v", err)
 		}
 
 		// Add payout amount to wallet PnL
 		if err := db.AddWalletPnL(ctx, playerAddress, payoutAmount); err != nil {
-			log.Printf("⚠️  Failed to update wallet PnL: %v", err)
+			log.Printf("  Failed to update wallet PnL: %v", err)
 		}
 	}()
 
@@ -666,11 +666,11 @@ func sendPrivateMessage(client *ClientConnection, userId string, message map[str
 	// Send directly to the requesting client connection
 	data, err := json.Marshal(message)
 	if err != nil {
-		log.Printf("⚠️  Failed to marshal private message: %v", err)
+		log.Printf("  Failed to marshal private message: %v", err)
 		return
 	}
 	client.Send <- data
-	log.Printf("✉️  Sent private message to client %s (userId: %s)", client.ID, userId)
+	log.Printf("  Sent private message to client %s (userId: %s)", client.ID, userId)
 }
 
 func min(a, b int) int {
@@ -687,7 +687,7 @@ func handleJoinCandleflipRoom(client *ClientConnection, roomID string) {
 	client.Subscriptions[channel] = true
 	client.mu.Unlock()
 
-	log.Printf("🎮 Client %s subscribed to Candleflip room: %s (spectator/player)", client.ID, roomID)
+	log.Printf(" Client %s subscribed to Candleflip room: %s (spectator/player)", client.ID, roomID)
 }
 
 // generateClientID creates a unique client ID

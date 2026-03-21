@@ -117,7 +117,7 @@ func HandleGetAllBatches(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	log.Printf("📋 Retrieved %d CandleFlip batches", len(batches))
+	log.Printf(" Retrieved %d CandleFlip batches", len(batches))
 }
 
 // HandleGetBatchByID returns a specific batch by ID
@@ -190,7 +190,7 @@ func HandleGetBatchByID(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	log.Printf("📋 Retrieved batch: %s", batchID)
+	log.Printf(" Retrieved batch: %s", batchID)
 }
 
 // HandleVerifyBatch verifies a batch using server seed
@@ -234,7 +234,7 @@ func HandleVerifyBatch(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	log.Printf("🔍 Batch verification - Batch: %s", batchID)
+	log.Printf(" Batch verification - Batch: %s", batchID)
 }
 
 /* =========================

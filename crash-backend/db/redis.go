@@ -52,7 +52,7 @@ type CandleFlipGameData struct {
 
 // InitRedis initializes the Redis client connection
 func InitRedis() error {
-	log.Println("🔌 Connecting to Redis...")
+	log.Println(" Connecting to Redis...")
 
 	// Get Redis configuration from environment
 	redisURL := os.Getenv("REDIS_URL")
@@ -88,14 +88,14 @@ func InitRedis() error {
 		return fmt.Errorf("failed to connect to Redis: %w", err)
 	}
 
-	log.Printf("✅ Redis connected successfully - URL: %s", redisURL)
+	log.Printf(" Redis connected successfully - URL: %s", redisURL)
 	return nil
 }
 
 // CloseRedis closes the Redis connection
 func CloseRedis() error {
 	if RedisClient != nil {
-		log.Println("🔌 Closing Redis connection...")
+		log.Println(" Closing Redis connection...")
 		return RedisClient.Close()
 	}
 	return nil
@@ -124,7 +124,7 @@ func StoreCrashBet(ctx context.Context, gameID, playerAddress string, bet *Crash
 	// Set TTL on hash (only if new)
 	RedisClient.Expire(ctx, hashKey, config.CrashGameTTL)
 
-	log.Printf("✅ Stored crash bet - Game: %s, Player: %s, Mult: %.2fx, Amount: %.4f MNT",
+	log.Printf(" Stored crash bet - Game: %s, Player: %s, Mult: %.2fx, Amount: %.4f MNT",
 		gameID, playerAddress, bet.EntryMultiplier, bet.BetAmount)
 	return nil
 }
@@ -164,7 +164,7 @@ func GetAllCrashBets(ctx context.Context, gameID string) (map[string]*CrashBetDa
 	for playerAddress, betJSON := range data {
 		var bet CrashBetData
 		if err := json.Unmarshal([]byte(betJSON), &bet); err != nil {
-			log.Printf("⚠️  Failed to unmarshal bet for %s: %v", playerAddress, err)
+			log.Printf("  Failed to unmarshal bet for %s: %v", playerAddress, err)
 			continue
 		}
 		bets[playerAddress] = &bet
@@ -182,7 +182,7 @@ func DeleteCrashBet(ctx context.Context, gameID, playerAddress string) error {
 		return fmt.Errorf("failed to delete crash bet: %w", err)
 	}
 
-	log.Printf("🗑️  Deleted crash bet - Game: %s, Player: %s", gameID, playerAddress)
+	log.Printf("  Deleted crash bet - Game: %s, Player: %s", gameID, playerAddress)
 	return nil
 }
 
@@ -211,7 +211,7 @@ func CleanupCrashGame(ctx context.Context, gameID string) error {
 		return fmt.Errorf("failed to cleanup crash game: %w", err)
 	}
 
-	log.Printf("🧹 Cleaned up crash game %s (%d players)", gameID, count)
+	log.Printf(" Cleaned up crash game %s (%d players)", gameID, count)
 	return nil
 }
 
@@ -234,7 +234,7 @@ func StoreCandleFlipGame(ctx context.Context, gameID, playerAddress string, game
 		return fmt.Errorf("failed to store candle game: %w", err)
 	}
 
-	log.Printf("✅ Stored candle game - ID: %s, Player: %s", gameID, playerAddress)
+	log.Printf(" Stored candle game - ID: %s, Player: %s", gameID, playerAddress)
 	return nil
 }
 

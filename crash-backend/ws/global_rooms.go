@@ -84,7 +84,7 @@ func CreateRoom(roomID, gameType string, betAmount float64, trend string) *RoomI
 	globalRooms[roomID] = room
 	globalRoomsMutex.Unlock()
 
-	log.Printf("🌍 Created global %s room: %s (max players: %d)", gameType, roomID, maxPlayers)
+	log.Printf(" Created global %s room: %s (max players: %d)", gameType, roomID, maxPlayers)
 	BroadcastRoomUpdate()
 
 	return room
@@ -118,17 +118,17 @@ func RemoveRoom(roomID string) {
 	delete(globalRooms, roomID)
 	globalRoomsMutex.Unlock()
 
-	log.Printf("🗑️  Removed global room: %s", roomID)
+	log.Printf("  Removed global room: %s", roomID)
 	BroadcastRoomUpdate()
 }
 
 // HandleGlobalRoomsWS handles WebSocket connections for global room list
 func HandleGlobalRoomsWS(w http.ResponseWriter, r *http.Request) {
-	log.Println("🌍 Global rooms WebSocket connection attempt from:", r.RemoteAddr)
+	log.Println(" Global rooms WebSocket connection attempt from:", r.RemoteAddr)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("❌ Global rooms WebSocket upgrade failed:", err)
+		log.Println(" Global rooms WebSocket upgrade failed:", err)
 		return
 	}
 	defer conn.Close()
@@ -138,7 +138,7 @@ func HandleGlobalRoomsWS(w http.ResponseWriter, r *http.Request) {
 	globalRoomClients[conn] = true
 	globalRoomClientsMutex.Unlock()
 
-	log.Printf("✅ Global rooms client connected. Total: %d", len(globalRoomClients))
+	log.Printf(" Global rooms client connected. Total: %d", len(globalRoomClients))
 
 	// Send current room list immediately
 	globalRoomsMutex.RLock()
@@ -152,7 +152,7 @@ func HandleGlobalRoomsWS(w http.ResponseWriter, r *http.Request) {
 		"type":  "rooms_update",
 		"rooms": rooms,
 	}); err != nil {
-		log.Printf("❌ Failed to send initial room list: %v", err)
+		log.Printf(" Failed to send initial room list: %v", err)
 	}
 
 	// Cleanup on disconnect
@@ -160,7 +160,7 @@ func HandleGlobalRoomsWS(w http.ResponseWriter, r *http.Request) {
 		globalRoomClientsMutex.Lock()
 		delete(globalRoomClients, conn)
 		globalRoomClientsMutex.Unlock()
-		log.Printf("👋 Global rooms client disconnected. Total: %d", len(globalRoomClients))
+		log.Printf(" Global rooms client disconnected. Total: %d", len(globalRoomClients))
 	}()
 
 	// Listen for messages (room creation requests)
@@ -168,14 +168,14 @@ func HandleGlobalRoomsWS(w http.ResponseWriter, r *http.Request) {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("❌ Global rooms WebSocket error: %v", err)
+				log.Printf(" Global rooms WebSocket error: %v", err)
 			}
 			break
 		}
 
 		var req map[string]interface{}
 		if err := json.Unmarshal(message, &req); err != nil {
-			log.Printf("❌ Failed to parse room request: %v", err)
+			log.Printf(" Failed to parse room request: %v", err)
 			continue
 		}
 

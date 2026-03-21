@@ -102,18 +102,18 @@ func broadcastToAllCandleflipClients(message map[string]interface{}) {
 
 	for conn := range candleflipClients {
 		if err := conn.WriteJSON(message); err != nil {
-			log.Printf("❌ Failed to broadcast to candleflip client: %v", err)
+			log.Printf(" Failed to broadcast to candleflip client: %v", err)
 		}
 	}
 }
 
 // HandleCandleflipWS - WebSocket endpoint
 func HandleCandleflipWS(w http.ResponseWriter, r *http.Request) {
-	log.Printf("🔥 CandleFlip WebSocket connection from: %s", r.RemoteAddr)
+	log.Printf(" CandleFlip WebSocket connection from: %s", r.RemoteAddr)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("❌ WebSocket upgrade failed:", err)
+		log.Println(" WebSocket upgrade failed:", err)
 		return
 	}
 
@@ -123,7 +123,7 @@ func HandleCandleflipWS(w http.ResponseWriter, r *http.Request) {
 	clientCount := len(candleflipClients)
 	candleflipClientsMutex.Unlock()
 
-	log.Printf("✅ CandleFlip client connected (Total: %d)", clientCount)
+	log.Printf(" CandleFlip client connected (Total: %d)", clientCount)
 
 	// Send welcome message
 	conn.WriteJSON(map[string]interface{}{
@@ -136,7 +136,7 @@ func HandleCandleflipWS(w http.ResponseWriter, r *http.Request) {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Printf("❌ WebSocket error: %v", err)
+				log.Printf(" WebSocket error: %v", err)
 			}
 			break
 		}
@@ -150,7 +150,7 @@ func HandleCandleflipWS(w http.ResponseWriter, r *http.Request) {
 	candleflipClientsMutex.Unlock()
 	
 	conn.Close()
-	log.Printf("👋 CandleFlip client disconnected")
+	log.Printf(" CandleFlip client disconnected")
 }
 
 // CreateBatchFromData creates and starts a candleflip batch (exported for use from unified.go)
@@ -211,7 +211,7 @@ func CreateBatchFromData(address string, roomCount int, amountPerRoom string, si
 	candleflipBatches[batchID] = batch
 	candleflipBatchesMutex.Unlock()
 
-	log.Printf("🎮 CandleFlip batch created - Batch: %s, Player: %s, Rooms: %d, Amount: %s, Side: %s",
+	log.Printf(" CandleFlip batch created - Batch: %s, Player: %s, Rooms: %d, Amount: %s, Side: %s",
 		batchID, address, roomCount, amountPerRoom, side)
 
 	// Broadcast batch start to all clients
@@ -238,7 +238,7 @@ func CreateBatchFromData(address string, roomCount int, amountPerRoom string, si
 func handleCandleflipMessage(conn *websocket.Conn, message []byte) {
 	var msg CreateBatchMessage
 	if err := json.Unmarshal(message, &msg); err != nil {
-		log.Printf("❌ Failed to parse candleflip message: %v", err)
+		log.Printf(" Failed to parse candleflip message: %v", err)
 		conn.WriteJSON(map[string]interface{}{
 			"type":  "error",
 			"error": "Invalid message format",
@@ -247,7 +247,7 @@ func handleCandleflipMessage(conn *websocket.Conn, message []byte) {
 	}
 
 	if msg.Type != "create_batch" {
-		log.Printf("⚠️ Unknown message type: %s", msg.Type)
+		log.Printf(" Unknown message type: %s", msg.Type)
 		return
 	}
 
@@ -355,7 +355,7 @@ func runCandleflipBatch(batch *CandleflipBatch) {
 			},
 		})
 
-		log.Printf("🎲 Room %d/%d - Final: %.3f, Winner: %s, Player Won: %v",
+		log.Printf(" Room %d/%d - Final: %.3f, Winner: %s, Player Won: %v",
 			i+1, batch.TotalRooms, finalPrice, winner, playerWon)
 
 		time.Sleep(500 * time.Millisecond)
@@ -379,7 +379,7 @@ func runCandleflipBatch(batch *CandleflipBatch) {
 		},
 	})
 
-	log.Printf("🎯 CandleFlip batch complete - Player won %d/%d rooms", wonRooms, batch.TotalRooms)
+	log.Printf(" CandleFlip batch complete - Player won %d/%d rooms", wonRooms, batch.TotalRooms)
 
 	// Attempt payout (non-blocking)
 	payoutCandleflipWinnings(batch)
@@ -392,13 +392,13 @@ func runCandleflipBatch(batch *CandleflipBatch) {
 	delete(candleflipBatches, batch.BatchID)
 	candleflipBatchesMutex.Unlock()
 
-	log.Printf("🗑️ Removed batch %s from memory", batch.BatchID)
+	log.Printf(" Removed batch %s from memory", batch.BatchID)
 }
 
 // Payout winnings
 func payoutCandleflipWinnings(batch *CandleflipBatch) {
 	if batch.WonRooms == 0 {
-		log.Printf("❌ Player won 0 rooms, no payout for %s", batch.PlayerAddress)
+		log.Printf(" Player won 0 rooms, no payout for %s", batch.PlayerAddress)
 		
 		batch.mu.Lock()
 		batch.Status = "paid"
@@ -419,13 +419,13 @@ func payoutCandleflipWinnings(batch *CandleflipBatch) {
 	batch.PayoutAmount = payout
 	batch.mu.Unlock()
 
-	log.Printf("💰 Calculating payout: %d rooms × %s stroops/room × 2 = %s stroops",
+	log.Printf(" Calculating payout: %d rooms × %s stroops/room × 2 = %s stroops",
 		batch.WonRooms, batch.AmountPerRoom.String(), payout.String())
 
 	// Initialize contract
 	contractClient, err := contract.NewGameHouseContract()
 	if err != nil {
-		log.Printf("❌ Failed to initialize contract: %v", err)
+		log.Printf(" Failed to initialize contract: %v", err)
 		
 		batch.mu.Lock()
 		batch.Status = "paid"
@@ -472,7 +472,7 @@ func payoutCandleflipWinnings(batch *CandleflipBatch) {
 	batch.mu.Unlock()
 
 	payoutXLM := float64(payout.Int64()) / 1e7
-	log.Printf("✅ Paid %s: %.7f XLM", batch.PlayerAddress, payoutXLM)
+	log.Printf(" Paid %s: %.7f XLM", batch.PlayerAddress, payoutXLM)
 }
 
 // Helper functions

@@ -45,7 +45,7 @@ func HandleGetLeaderboard(w http.ResponseWriter, r *http.Request) {
 	// Get top 20 leaderboard
 	records, err := db.GetWalletPnLLeaderboard(ctx, 20)
 	if err != nil {
-		log.Printf("❌ Failed to get leaderboard: %v", err)
+		log.Printf(" Failed to get leaderboard: %v", err)
 		sendError(w, http.StatusInternalServerError, "Failed to retrieve leaderboard")
 		return
 	}
@@ -80,7 +80,7 @@ func HandleGetLeaderboard(w http.ResponseWriter, r *http.Request) {
 		if !userInTop {
 			userRecord, err := db.GetWalletPnLRank(ctx, walletParam)
 			if err != nil {
-				log.Printf("⚠️  Failed to get user rank: %v", err)
+				log.Printf("  Failed to get user rank: %v", err)
 			} else if userRecord != nil {
 				response.UserPosition = &LeaderboardEntryResponse{
 					Rank:          userRecord.Rank,
@@ -95,5 +95,5 @@ func HandleGetLeaderboard(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	json.NewEncoder(w).Encode(response)
 
-	log.Printf("📋 Retrieved leaderboard with %d entries", len(records))
+	log.Printf(" Retrieved leaderboard with %d entries", len(records))
 }

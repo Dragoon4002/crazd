@@ -16,14 +16,14 @@ import (
 func main() {
 	// Load .env file
 	if err := godotenv.Load(); err != nil {
-		log.Println("⚠️  Warning: .env file not found, using environment variables")
+		log.Println("Warning: .env file not found, using environment variables")
 	} else {
-		log.Println("✅ Loaded environment variables from .env")
+		log.Println("Loaded environment variables from .env")
 	}
 
 	// Initialize database connections
 	if err := db.InitPostgres(); err != nil {
-		log.Printf("⚠️  Warning: PostgreSQL initialization failed: %v", err)
+		log.Printf("Warning: PostgreSQL initialization failed: %v", err)
 		log.Println("   Chat history and crash history features will be disabled")
 	} else {
 		// Load crash history from DB into memory
@@ -35,7 +35,7 @@ func main() {
 	ws.StartCrashGameLoop()
 
 	if err := db.InitRedis(); err != nil {
-		log.Printf("⚠️  Warning: Redis initialization failed: %v", err)
+		log.Printf("Warning: Redis initialization failed: %v", err)
 		log.Println("   Some features may not work correctly")
 	}
 	defer db.CloseRedis()
@@ -43,7 +43,7 @@ func main() {
 	// Initialize contract client
 	contractClient, err := contract.NewGameHouseContract()
 	if err != nil {
-		log.Printf("⚠️  Warning: Contract client initialization failed: %v", err)
+		log.Printf("Warning: Contract client initialization failed: %v", err)
 		log.Println("   Cashout payments will not work")
 	} else {
 		ws.SetContractClient(contractClient)
@@ -70,16 +70,16 @@ func main() {
 		port = "8080"
 	}
 	addr := "0.0.0.0:" + port
-	log.Printf("🚀 Server starting on %s", addr)
+	log.Printf("Server starting on %s", addr)
 	log.Println("")
-	log.Println("📡 WebSocket Endpoints:")
+	log.Println("WebSocket Endpoints:")
 	log.Println("   ws://localhost:8080/ws - Unified WebSocket")
 	log.Println("   - Subscribe to 'crash' for crash game + history")
 	log.Println("   - Subscribe to 'chat' for server chat")
 	log.Println("   - Subscribe to 'rooms' for global rooms")
 	log.Println("   - Subscribe to 'candleflip:<roomId>' for specific room")
 	log.Println("")
-	log.Println("🔌 API Endpoints:")
+	log.Println("API Endpoints:")
 	log.Println("   GET  /api/crash - Get crash game history (last 50)")
 	log.Println("   GET  /api/crash/:gameId - Get specific crash game details")
 	log.Println("   GET  /api/health - Health check (Redis + PostgreSQL)")
@@ -89,7 +89,7 @@ func main() {
 	log.Println("")
 
 	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatal("❌ Server error:", err)
+		log.Fatal("Server error:", err)
 	}
 }
 

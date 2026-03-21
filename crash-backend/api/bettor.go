@@ -51,7 +51,7 @@ func HandleAddBettor(w http.ResponseWriter, r *http.Request) {
 
 	ws.AddActiveBettor(req.Address, req.BetAmount, req.EntryMultiplier)
 
-	log.Printf("✅ Added active bettor: %s (%.4f XLM @ %.2fx)", req.Address, req.BetAmount, req.EntryMultiplier)
+	log.Printf(" Added active bettor: %s (%.4f XLM @ %.2fx)", req.Address, req.BetAmount, req.EntryMultiplier)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -81,7 +81,7 @@ func HandleRemoveBettor(w http.ResponseWriter, r *http.Request) {
 
 	ws.RemoveActiveBettor(req.Address)
 
-	log.Printf("✅ Removed active bettor: %s", req.Address)
+	log.Printf(" Removed active bettor: %s", req.Address)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

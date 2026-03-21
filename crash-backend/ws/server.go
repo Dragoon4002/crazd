@@ -25,11 +25,11 @@ const (
 )
 
 func HandleWS(w http.ResponseWriter, r *http.Request) {
-	log.Println("📥 WebSocket connection attempt from:", r.RemoteAddr)
+	log.Println(" WebSocket connection attempt from:", r.RemoteAddr)
 
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
-		log.Println("❌ WebSocket upgrade failed:", err)
+		log.Println(" WebSocket upgrade failed:", err)
 		return
 	}
 	defer conn.Close()
@@ -37,10 +37,10 @@ func HandleWS(w http.ResponseWriter, r *http.Request) {
 	// Increment client count
 	atomic.AddInt64(&clientCount, 1)
 	count := atomic.LoadInt64(&clientCount)
-	log.Printf("✅ Client connected! Total clients: %d\n", count)
+	log.Printf(" Client connected! Total clients: %d\n", count)
 	defer func() {
 		atomic.AddInt64(&clientCount, -1)
-		log.Printf("👋 Client disconnected. Total clients: %d\n", atomic.LoadInt64(&clientCount))
+		log.Printf(" Client disconnected. Total clients: %d\n", atomic.LoadInt64(&clientCount))
 	}()
 
 	// Game loop - restart games with 15 second delay
@@ -151,14 +151,14 @@ func HandleWS(w http.ResponseWriter, r *http.Request) {
 					}
 					// Don't copy valueList - completed candles don't need it
 					groups = append(groups, completedGroup)
-					log.Printf("📊 Completed candle #%d: Open=%.2f, Close=%.2f (IMMUTABLE at %p), Max=%.2f, Min=%.2f",
+					log.Printf(" Completed candle #%d: Open=%.2f, Close=%.2f (IMMUTABLE at %p), Max=%.2f, Min=%.2f",
 						len(groups), completedGroup.Open, *completedGroup.Close, completedGroup.Close, completedGroup.Max, completedGroup.Min)
 
 					// Check if we need to merge
 					if len(groups) >= MergeThreshold {
-						log.Printf("🔄 Merging %d groups (threshold reached)", len(groups))
+						log.Printf(" Merging %d groups (threshold reached)", len(groups))
 						groups, groupDuration = mergeGroups(groups, groupDuration)
-						log.Printf("✅ After merge: %d groups, new duration: %dms", len(groups), groupDuration)
+						log.Printf(" After merge: %d groups, new duration: %dms", len(groups), groupDuration)
 					}
 
 					// Start new group
@@ -173,7 +173,7 @@ func HandleWS(w http.ResponseWriter, r *http.Request) {
 						IsComplete: false,
 					}
 					groupStartTime = now
-					log.Printf("🆕 Started new candle group with price %.2f, duration %dms", price, groupDuration)
+					log.Printf(" Started new candle group with price %.2f, duration %dms", price, groupDuration)
 				} else {
 					// Update current group
 					currentGroup.ValueList = append(currentGroup.ValueList, price)
@@ -212,12 +212,12 @@ func HandleWS(w http.ResponseWriter, r *http.Request) {
 
 			// Debug log first few ticks to verify data structure
 			if tick < 5 {
-				log.Printf("📤 Tick %d - Previous: %d candles, Current: %v, CurrentGroup details: %+v",
+				log.Printf(" Tick %d - Previous: %d candles, Current: %v, CurrentGroup details: %+v",
 					tick, len(previousCandles), currentGroup != nil, currentGroup)
 			}
 
 			if err := conn.WriteJSON(response); err != nil {
-				log.Printf("❌ Failed to send JSON: %v", err)
+				log.Printf(" Failed to send JSON: %v", err)
 				return
 			}
 

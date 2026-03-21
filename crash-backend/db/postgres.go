@@ -37,7 +37,7 @@ type ChatHistoryRecord struct {
 
 // InitPostgres initializes the PostgreSQL connection pool
 func InitPostgres() error {
-	log.Println("🔌 Connecting to PostgreSQL (Supabase)...")
+	log.Println(" Connecting to PostgreSQL (Supabase)...")
 
 	// Get DATABASE_URL from environment
 	databaseURL := os.Getenv("DATABASE_URL")
@@ -70,7 +70,7 @@ func InitPostgres() error {
 		return fmt.Errorf("failed to ping database: %w", err)
 	}
 
-	log.Println("✅ PostgreSQL connected successfully (Supabase)")
+	log.Println(" PostgreSQL connected successfully (Supabase)")
 
 	// Initialize schema
 	if err := InitSchema(context.Background()); err != nil {
@@ -83,14 +83,14 @@ func InitPostgres() error {
 // ClosePostgres closes the PostgreSQL connection pool
 func ClosePostgres() {
 	if PostgresPool != nil {
-		log.Println("🔌 Closing PostgreSQL connection...")
+		log.Println(" Closing PostgreSQL connection...")
 		PostgresPool.Close()
 	}
 }
 
 // InitSchema creates the database tables if they don't exist
 func InitSchema(ctx context.Context) error {
-	log.Println("📋 Initializing database schema...")
+	log.Println(" Initializing database schema...")
 
 	// Create crash_history table
 	crashHistorySchema := `
@@ -208,7 +208,7 @@ func InitSchema(ctx context.Context) error {
 		return fmt.Errorf("failed to create wallet_pnl table: %w", err)
 	}
 
-	log.Println("✅ Database schema initialized")
+	log.Println(" Database schema initialized")
 	return nil
 }
 
@@ -219,7 +219,7 @@ func InitSchema(ctx context.Context) error {
 // StoreCrashHistory stores a crash game result in PostgreSQL
 func StoreCrashHistory(ctx context.Context, record *CrashHistoryRecord) error {
 	if PostgresPool == nil {
-		log.Println("⚠️  PostgreSQL not initialized, skipping crash history storage")
+		log.Println("  PostgreSQL not initialized, skipping crash history storage")
 		return nil
 	}
 
@@ -250,7 +250,7 @@ func StoreCrashHistory(ctx context.Context, record *CrashHistoryRecord) error {
 		return fmt.Errorf("failed to store crash history: %w", err)
 	}
 
-	log.Printf("✅ Stored crash history - Game: %s, Peak: %.2fx",
+	log.Printf(" Stored crash history - Game: %s, Peak: %.2fx",
 		record.GameID, record.Peak)
 	return nil
 }
@@ -349,7 +349,7 @@ func GetRecentCrashHistory(ctx context.Context, limit int) ([]*CrashHistoryRecor
 // StoreChatMessage stores a chat message in PostgreSQL
 func StoreChatMessage(ctx context.Context, record *ChatHistoryRecord) error {
 	if PostgresPool == nil {
-		log.Println("⚠️  PostgreSQL not initialized, skipping chat message storage")
+		log.Println("  PostgreSQL not initialized, skipping chat message storage")
 		return nil
 	}
 
@@ -442,7 +442,7 @@ type CrashBetRecord struct {
 // StoreCrashBetPostgres stores a new crash bet in PostgreSQL
 func StoreCrashBetPostgres(ctx context.Context, bet *CrashBetRecord) error {
 	if PostgresPool == nil {
-		log.Println("⚠️  PostgreSQL not initialized, skipping bet storage")
+		log.Println("  PostgreSQL not initialized, skipping bet storage")
 		return nil
 	}
 
@@ -470,7 +470,7 @@ func StoreCrashBetPostgres(ctx context.Context, bet *CrashBetRecord) error {
 		return fmt.Errorf("failed to store crash bet: %w", err)
 	}
 
-	log.Printf("✅ Stored crash bet - Player: %s, Amount: %.4f, Entry: %.2fx",
+	log.Printf(" Stored crash bet - Player: %s, Amount: %.4f, Entry: %.2fx",
 		bet.PlayerAddress, bet.BetAmount, bet.EntryMultiplier)
 	return nil
 }
@@ -478,7 +478,7 @@ func StoreCrashBetPostgres(ctx context.Context, bet *CrashBetRecord) error {
 // UpdateCrashBetCashout updates a bet when player cashes out
 func UpdateCrashBetCashout(ctx context.Context, gameID, playerAddress string, cashoutMultiplier, payoutAmount float64, payoutHash string) error {
 	if PostgresPool == nil {
-		log.Println("⚠️  PostgreSQL not initialized, skipping bet update")
+		log.Println("  PostgreSQL not initialized, skipping bet update")
 		return nil
 	}
 
@@ -511,7 +511,7 @@ func UpdateCrashBetCashout(ctx context.Context, gameID, playerAddress string, ca
 		return fmt.Errorf("no active bet found for player %s in game %s", playerAddress, gameID)
 	}
 
-	log.Printf("✅ Updated crash bet - Player: %s, Cashout: %.2fx, Payout: %.4f",
+	log.Printf(" Updated crash bet - Player: %s, Cashout: %.2fx, Payout: %.4f",
 		playerAddress, cashoutMultiplier, payoutAmount)
 	return nil
 }
@@ -519,7 +519,7 @@ func UpdateCrashBetCashout(ctx context.Context, gameID, playerAddress string, ca
 // MarkBetsAsLost marks all active bets for a game as lost
 func MarkBetsAsLost(ctx context.Context, gameID string) error {
 	if PostgresPool == nil {
-		log.Println("⚠️  PostgreSQL not initialized, skipping")
+		log.Println("  PostgreSQL not initialized, skipping")
 		return nil
 	}
 
@@ -536,7 +536,7 @@ func MarkBetsAsLost(ctx context.Context, gameID string) error {
 	}
 
 	rowsAffected := result.RowsAffected()
-	log.Printf("🔴 Marked %d bets as lost for game %s", rowsAffected, gameID)
+	log.Printf(" Marked %d bets as lost for game %s", rowsAffected, gameID)
 	return nil
 }
 
@@ -602,7 +602,7 @@ type WalletPnLRecord struct {
 // SubtractWalletPnL subtracts bet amount from wallet's PnL (upsert)
 func SubtractWalletPnL(ctx context.Context, walletAddress string, betAmount float64) error {
 	if PostgresPool == nil {
-		log.Println("⚠️  PostgreSQL not initialized, skipping PnL update")
+		log.Println("  PostgreSQL not initialized, skipping PnL update")
 		return nil
 	}
 
@@ -618,14 +618,14 @@ func SubtractWalletPnL(ctx context.Context, walletAddress string, betAmount floa
 		return fmt.Errorf("failed to subtract wallet PnL: %w", err)
 	}
 
-	log.Printf("📉 Subtracted %.4f from wallet %s PnL", betAmount, walletAddress)
+	log.Printf(" Subtracted %.4f from wallet %s PnL", betAmount, walletAddress)
 	return nil
 }
 
 // AddWalletPnL adds payout amount to wallet's PnL
 func AddWalletPnL(ctx context.Context, walletAddress string, payoutAmount float64) error {
 	if PostgresPool == nil {
-		log.Println("⚠️  PostgreSQL not initialized, skipping PnL update")
+		log.Println("  PostgreSQL not initialized, skipping PnL update")
 		return nil
 	}
 
@@ -641,7 +641,7 @@ func AddWalletPnL(ctx context.Context, walletAddress string, payoutAmount float6
 		return fmt.Errorf("failed to add wallet PnL: %w", err)
 	}
 
-	log.Printf("📈 Added %.4f to wallet %s PnL", payoutAmount, walletAddress)
+	log.Printf(" Added %.4f to wallet %s PnL", payoutAmount, walletAddress)
 	return nil
 }
 

@@ -71,7 +71,7 @@ func HandleVerifyGame(w http.ResponseWriter, r *http.Request) {
 	// Calculate the peak multiplier
 	peak := game.VerifyGamePeak(req.ServerSeed, req.GameID)
 
-	log.Printf("✅ Game verified - GameID: %s, Peak: %.2fx", req.GameID, peak)
+	log.Printf(" Game verified - GameID: %s, Peak: %.2fx", req.GameID, peak)
 
 	json.NewEncoder(w).Encode(VerifyResponse{
 		Valid:          true,

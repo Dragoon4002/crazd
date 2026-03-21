@@ -54,7 +54,7 @@ func NewGameHouseContract() (*GameHouseContract, error) {
 		return nil, fmt.Errorf("invalid SERVER_PRIVATE_KEY: %v", err)
 	}
 
-	log.Printf("✅ Stellar contract client initialized - Contract: %s, Server: %s", contractID, kp.Address())
+	log.Printf(" Stellar contract client initialized - Contract: %s, Server: %s", contractID, kp.Address())
 
 	return &GameHouseContract{
 		ContractID: contractID,
@@ -156,7 +156,7 @@ func (c *GameHouseContract) PayPlayer(ctx context.Context, playerAddress string,
 		return fmt.Errorf("tx rejected: %s", sendResult.ErrorResultXDR)
 	}
 
-	log.Printf("📤 pay_player submitted - Player: %s, Amount: %s stroops, Hash: %s",
+	log.Printf(" pay_player submitted - Player: %s, Amount: %s stroops, Hash: %s",
 		playerAddress, amount.String(), sendResult.Hash)
 
 	// 9. Poll for confirmation (max 30s, non-blocking on timeout)
@@ -165,7 +165,7 @@ func (c *GameHouseContract) PayPlayer(ctx context.Context, playerAddress string,
 		if err == nil {
 			switch getTxR.Status {
 			case "SUCCESS":
-				log.Printf("✅ pay_player confirmed - Player: %s, Hash: %s", playerAddress, sendResult.Hash)
+				log.Printf(" pay_player confirmed - Player: %s, Hash: %s", playerAddress, sendResult.Hash)
 				return nil
 			case "FAILED":
 				return fmt.Errorf("tx failed: %s", getTxR.ResultXDR)
@@ -179,7 +179,7 @@ func (c *GameHouseContract) PayPlayer(ctx context.Context, playerAddress string,
 	}
 
 	// Don't block game flow if not confirmed within 30s
-	log.Printf("⚠️  pay_player not confirmed in 30s - Hash: %s (continuing)", sendResult.Hash)
+	log.Printf("  pay_player not confirmed in 30s - Hash: %s (continuing)", sendResult.Hash)
 	return nil
 }
 

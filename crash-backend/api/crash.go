@@ -58,7 +58,7 @@ func HandleGetCrashHistory(w http.ResponseWriter, r *http.Request) {
 	// Get recent crash history from PostgreSQL (last 50 games)
 	history, err := db.GetRecentCrashHistory(ctx, 50)
 	if err != nil {
-		log.Printf("❌ Failed to get crash history: %v", err)
+		log.Printf(" Failed to get crash history: %v", err)
 		sendError(w, http.StatusInternalServerError, "Failed to retrieve crash history")
 		return
 	}
@@ -82,7 +82,7 @@ func HandleGetCrashHistory(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	log.Printf("📋 Retrieved %d crash games", len(history))
+	log.Printf(" Retrieved %d crash games", len(history))
 }
 
 // HandleGetCrashGameDetail handles GET /api/crash/:gameId
@@ -113,7 +113,7 @@ func HandleGetCrashGameDetail(w http.ResponseWriter, r *http.Request) {
 	// Get game history from PostgreSQL
 	game, err := db.GetCrashHistory(ctx, gameID)
 	if err != nil {
-		log.Printf("❌ Failed to get crash game: %v", err)
+		log.Printf(" Failed to get crash game: %v", err)
 		sendError(w, http.StatusInternalServerError, "Failed to retrieve game data")
 		return
 	}
@@ -137,5 +137,5 @@ func HandleGetCrashGameDetail(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 	json.NewEncoder(w).Encode(response)
 
-	log.Printf("🔍 Retrieved crash game: %s", gameID)
+	log.Printf(" Retrieved crash game: %s", gameID)
 }
