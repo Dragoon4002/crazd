@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: crash-backend
+    runtime: docker
+    dockerfilePath: ./crash-backend/Dockerfile
+    dockerContext: ./crash-backend
+    envVars:
+      - key: SERVER_PRIVATE_KEY
+        sync: false
+      - key: CONTRACT_ID
+        sync: false
+      - key: RPC_URL
+        sync: false
+      - key: REDIS_URL
+        sync: false
+      - key: REDIS_PASSWORD
+        sync: false
+      - key: REDIS_DB
+        sync: false
+      - key: DATABASE_URL
+        sync: false

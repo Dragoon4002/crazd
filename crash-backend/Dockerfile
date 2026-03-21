@@ -31,6 +31,7 @@ COPY --from=builder /app/server .
 # Copy any static files if needed
 COPY --from=builder /app/contract ./contract
 
-EXPOSE 8080
+RUN chmod +x /app/server
+EXPOSE 10000
 
-CMD ["./server”]
+ENTRYPOINT [“/app/server”]
