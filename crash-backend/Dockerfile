@@ -34,4 +34,4 @@ COPY --from=builder /app/contract ./contract
 RUN chmod +x /app/server
 EXPOSE 10000
 
-ENTRYPOINT [“/app/server”]
+CMD /app/server
