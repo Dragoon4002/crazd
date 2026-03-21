@@ -1,9 +1,13 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"goLangServer/api"
 	"goLangServer/contract"
@@ -88,9 +92,28 @@ func main() {
 	log.Println("   GET  /api/bettor/list - Get active bettors")
 	log.Println("")
 
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		log.Fatal("Server error:", err)
+	server := &http.Server{Addr: addr}
+
+	// Graceful shutdown on SIGTERM/SIGINT
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGTERM, syscall.SIGINT)
+
+	go func() {
+		if err := server.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal("Server error:", err)
+		}
+	}()
+
+	<-quit
+	log.Println("Shutting down server...")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	if err := server.Shutdown(ctx); err != nil {
+		log.Fatal("Server forced to shutdown:", err)
 	}
+	log.Println("Server exited cleanly")
 }
 
 // corsMiddleware adds CORS headers to allow frontend requests
